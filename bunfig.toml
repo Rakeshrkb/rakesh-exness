@@ -1,0 +1,6 @@
+[install]
+workspace = true
+
+[run]
+# This helps Bun resolve paths in monorepos
+allow-untyped-imports = true

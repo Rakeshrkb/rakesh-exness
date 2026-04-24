@@ -1,0 +1,22 @@
+{
+  "name": "price-poller",
+  "module": "src/index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "bun run --watch src/index.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@types/ws": "^8.18.1",
+    "database": "workspace:*",
+    "kafkajs": "^2.2.4",
+    "redis": "^5.11.0",
+    "ws": "^8.19.0"
+  }
+}

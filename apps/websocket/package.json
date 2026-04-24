@@ -1,0 +1,23 @@
+{
+  "name": "websocket",
+  "module": "src/index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "^1.3.12",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^25.6.0",
+    "@types/ws": "^8.18.1"
+  },
+  "scripts": {
+    "dev": "bun run --watch src/index.ts"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "jsonwebtoken": "^9.0.3",
+    "redis": "^5.12.1",
+    "ws": "^8.20.0"
+  }
+}

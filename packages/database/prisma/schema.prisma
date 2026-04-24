@@ -1,0 +1,243 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// User accounts with authentication and balances
+model User {
+  userId       String   @id @default(cuid())
+  email        String   @unique
+  password     String // Empty string for OAuth users
+  balanceCents Int      @default(500000)
+  freezedBalanceCents Int      @default(0) // For margin freezes
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // OAuth fields
+  provider      String? // "google", "github", or null for email/password
+  providerId    String? // OAuth provider's user ID
+  emailVerified Boolean @default(false)
+  avatarUrl     String? // Profile picture from OAuth
+
+  @@index([provider, providerId])
+  @@map("users")
+}
+
+// using for spot trading
+model Balance {
+  id        String   @id @default(cuid())
+  userId    String
+  asset     String   // "BTC", "USDT", etc.
+
+  available Int      // free balance
+  frozen    Int      // locked balance
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, asset])
+  @@index([userId])
+}
+
+// Stores executed trades for spot trading
+model SpotTrades {
+  id              String   @id @default(cuid())
+  externalTradeId String   @unique
+
+  symbol          String
+  price           Int
+  quantity        Int
+
+  buyOrderId      String
+  sellOrderId     String
+
+  buyUserId       String
+  sellUserId      String
+
+  timestamp       DateTime @default(now())
+
+  buyOrder        SpotOrders @relation("BuyOrder", fields: [buyOrderId], references: [id])
+  sellOrder       SpotOrders @relation("SellOrder", fields: [sellOrderId], references: [id])
+
+  @@index([buyOrderId])
+  @@index([sellOrderId])
+  @@index([symbol])
+}
+
+// stores orders when user places an order
+model SpotOrders {
+  id              String   @id @default(cuid())
+  userId          String
+  symbol          String
+
+  side            OrderSide
+  type            OrderType
+
+  price           Int
+  quantity        Int
+  filledQuantity  Int      @default(0)
+
+  status          OrderStatus
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  buyTrades       SpotTrades[] @relation("BuyOrder")
+  sellTrades      SpotTrades[] @relation("SellOrder")
+
+  @@index([userId])
+  @@index([symbol])
+  @@index([status])
+  @@index([userId, status])
+}
+
+model UserSnapshot {
+  id           Int      @id @default(autoincrement())
+  userId       String
+  balanceCents Float
+  createdAt    DateTime @default(now())
+}
+
+//Every time price poller receives a trade from Binance websocket it will come here
+model Trade {
+  id        BigInt   @default(autoincrement())
+  symbol    String
+  price     BigInt
+  tradeId   BigInt //Binance's own trade ID for avoid inserting duplicates
+  timestamp DateTime @db.Timestamptz(3)
+  quantity  Decimal  @db.Decimal(20, 8) // 20 digits allowed and 8 digits after decimal
+
+  @@id([id, timestamp])
+  @@unique([tradeId, timestamp]) // Required for TimescaleDB hypertable
+  @@index([symbol, timestamp]) // for quick indexing and finding
+}
+
+
+// Closed trading positions with PnL
+model ClosedOrder {
+  orderId          String   @id
+  userId           String
+  asset            String
+  type             String
+  margin           Int
+  initialMargin    Int      // Original margin when opened
+  addedMargin      Int      @default(0) // Additional margin added
+  leverage         Int
+  openPrice        Int
+  closePrice       Int
+  liquidationPrice Int
+  takeProfit       Int?
+  stopLoss         Int?
+  pnl              Int
+  closeReason      String
+  closeMessage     String?
+  openedAt         DateTime
+  closedAt         DateTime
+  createdAt        DateTime @default(now())
+
+  // Trailing stop loss fields (JSON stored as String for simplicity)
+  trailingStopLossEnabled       Boolean @default(false)
+  trailingStopLossDistance      Int?
+  trailingStopLossHighestPrice  Int?
+  trailingStopLossLowestPrice   Int?
+
+  @@index([userId])
+  @@index([closedAt])
+  @@map("closed_orders")
+}
+
+// Periodic snapshots of open orders (every 10 seconds)
+model OrderSnapshot {
+  id               Int      @id @default(autoincrement())
+  orderId          String
+  userId           String
+  asset            String
+  type             String
+  margin           Int
+  initialMargin    Int      // Original margin when opened
+  addedMargin      Int      @default(0) // Additional margin added
+  leverage         Int
+  openPrice        Int
+  liquidationPrice Int
+  takeProfit       Int?
+  stopLoss         Int?
+  openedAt         DateTime
+  snapshotAt       DateTime @default(now())
+
+  // Trailing stop loss fields
+  trailingStopLossEnabled       Boolean @default(false)
+  trailingStopLossDistance      Int?
+  trailingStopLossHighestPrice  Int?
+  trailingStopLossLowestPrice   Int?
+
+  @@index([orderId, snapshotAt])
+  @@map("order_snapshots")
+}
+
+// Currently active orders (persistent state)
+model ActiveOrder {
+  orderId          String   @id
+  userId           String
+  asset            String
+  type             String
+  margin           Int
+  initialMargin    Int      // Original margin when opened
+  addedMargin      Int      @default(0) // Additional margin added
+  leverage         Int
+  openPrice        Int
+  liquidationPrice Int
+  takeProfit       Int?
+  stopLoss         Int?
+  openedAt         DateTime
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Trailing stop loss fields
+  trailingStopLossEnabled       Boolean @default(false)
+  trailingStopLossDistance      Int?
+  trailingStopLossHighestPrice  Int?
+  trailingStopLossLowestPrice   Int?
+
+  @@index([userId])
+  @@map("active_orders")
+}
+
+// Platform profit state (singleton  always id = 1)
+model PlatformProfit {
+  id            Int      @id @default(1)
+  totalProfit   Int      // Total platform profit in cents
+  openTrades    Int      // Count of currently open trades
+  closedTrades  Int      // Count of closed trades
+  totalTrades   Int      // Total trades (open + closed)
+  lastUpdated   DateTime @updatedAt
+  createdAt     DateTime @default(now())
+
+  @@map("platform_profit")
+}
+
+
+enum OrderSide {
+  BUY
+  SELL
+}
+
+enum OrderStatus {
+  PENDING
+  PARTIAL
+  FILLED
+  CANCELLED
+}
+
+enum OrderType {
+  MARKET
+  LIMIT
+}

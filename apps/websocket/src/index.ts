@@ -10,6 +10,9 @@ import { WSS_PORT } from "./constant";
 const wss = new WebSocketServer({ port: WSS_PORT });
 let shuttingDown = false;
 export const startServer = () => {
+    console.log("═══════════════════════════════════════");
+    console.log(`\x1b[32m🚀 Websocket running on port ${WSS_PORT}\x1b[0m`);
+    console.log("═══════════════════════════════════════");
   initRedisSubscriptions();
   console.log("[1/2] Redis initialized and subscribed to price channels");
     wss.on('listening', () => {

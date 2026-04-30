@@ -3,8 +3,9 @@ import { SUPPORTED_ASSETS, type Asset } from "./constant";
 import { SUBSCRIPTION_MANAGER } from "./subscriptionManager";
 import { WebSocket } from "ws";
 import { USER_WS_MAP } from "./subscriptionManager";
+import { REDIS_URL } from "./constant";
 const redisClient = createClient({
-  url: process.env.REDIS_URL || "redis://localhost:6380",
+  url: REDIS_URL,
   socket: {
     reconnectStrategy: (retries) => {
       if (retries > 10) {
@@ -65,13 +66,13 @@ export const initRedisSubscriptions = async () => {
 };
 
 export const initRedisUserOrders = async () => {
-  const userOrdersChannel = "user_orders:*";
+  const userOrdersChannel = "order:*";
   if (!orderSubscriber.isOpen) {
     await orderSubscriber.connect();
   }
   orderSubscriber.pSubscribe(userOrdersChannel, (message, channel) => {
     const parsed = JSON.parse(message);
-    const userId = parsed.userId;
+    const userId = parsed.data.userId;
     console.log(`[INFO] Received order update for user ${userId}:`, message);
     if (!userId) return;
     USER_WS_MAP.get(userId!)?.forEach((ws) => {

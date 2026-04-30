@@ -1,7 +1,7 @@
 services:
   timescaledb:
     image: timescale/timescaledb:latest-pg15
-    container_name: timescaledb
+    container_name: exness-timescaledb
     ports:
       - "5432:5432"
     environment:
@@ -34,7 +34,7 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: exness-zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://exness-kafka:9092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     healthcheck:
@@ -43,6 +43,42 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    container_name: exness-backend
+    depends_on:
+      - timescaledb
+      - redis
+      - kafka
+    ports:
+      - "4000:4000"
+    env_file:
+      - .env
+  price-poller:
+    build:
+      context: .
+      dockerfile: apps/price-poller/Dockerfile
+    container_name: exness-price-poller
+    depends_on:
+      - redis
+      - kafka
+    env_file:
+      - .env
+  websocket:
+    build:
+      context: .
+      dockerfile: apps/websocket/Dockerfile
+    container_name: exness-websocket
+    depends_on:
+      - redis
+      - kafka
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
 
 volumes:
   timescale_data:

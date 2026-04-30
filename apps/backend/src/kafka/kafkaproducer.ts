@@ -4,10 +4,11 @@ globalThis.setTimeout = (handler: TimerHandler, timeout?: number, ...args: any[]
   return originalSetTimeout(handler, Math.max(0, timeout || 0), ...args);
 };
 import  {Kafka, logLevel } from 'kafkajs';
+import { KAFKA_BROKER } from "../constants/envConstants";
 
 export const kafka = new Kafka({
   clientId: 'matching-engine',
-  brokers: ['localhost:9092'],
+  brokers: [KAFKA_BROKER],
   logLevel: logLevel.NOTHING,
     connectionTimeout: 30000,
     requestTimeout: 30000,
@@ -40,7 +41,9 @@ export const matching_engine_producer = kafka.producer({
 
 // start the producer
 export const startMatchingEngineProducer = async () => {
+    console.log("Connecting to Kafka Producer...");
     await matching_engine_producer.connect();
+    console.log("Kafka Producer connected");
 };
 
 // stop the producer

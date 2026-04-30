@@ -6,13 +6,14 @@ import type { extendedWebSocket } from './interfaces';
 import { handleRawMessage } from './utils';
 import { routeMessage } from './router';
 import { removeUser } from './subscriptionManager';
-const wss = new WebSocketServer({ port: 8080 });
+import { WSS_PORT } from "./constant";
+const wss = new WebSocketServer({ port: WSS_PORT });
 let shuttingDown = false;
 export const startServer = () => {
   initRedisSubscriptions();
   console.log("[1/2] Redis initialized and subscribed to price channels");
     wss.on('listening', () => {
-    console.log("[2/2] WSS started successfully on ws://localhost:8080");
+    console.log("[2/2] WSS started successfully on ws://localhost:" + WSS_PORT);
   });
 
   wss.on('connection', (ws: extendedWebSocket) => {

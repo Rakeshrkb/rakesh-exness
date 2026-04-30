@@ -7,11 +7,12 @@ globalThis.setTimeout = (handler: TimerHandler, timeout?: number, ...args: any[]
 import { Kafka, logLevel } from "kafkajs";
 import type { Trades, typeOfPriceData } from "./types";
 import { binanceEmitter } from "./binance";
+import { brokerUrl } from "./constants";
 
 // connecting with docker and configuration for retry mechanism
 export const kafkaInstance = new Kafka({
   clientId: "rakesh_exness_price_poller_producer",
-  brokers: ["localhost:9092"],
+  brokers: [brokerUrl],
   logLevel: logLevel.WARN,
   connectionTimeout: 10000,
   requestTimeout: 30000,

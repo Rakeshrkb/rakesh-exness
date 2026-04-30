@@ -3,12 +3,23 @@ import cors from "cors";
 import { PORT } from "./constants/envConstants";
 import { ErrorHandler, notFoundHandler } from "./utils/errorHandler";
 import { initPriceMonitor, stopPriceMonitor } from "./services/priceMonitor";
-import { startMatchingEngineProducer, stopMatchingEngineProducer } from "./kafka/kafkaproducer";
-import { initRedisPublisher, stopRedisPublisher } from "./services/orderBroadcast";
+import {
+  startMatchingEngineProducer,
+  stopMatchingEngineProducer,
+} from "./kafka/kafkaproducer";
+import {
+  initRedisPublisher,
+  stopRedisPublisher,
+} from "./services/orderBroadcast";
 import { startStateRestoration } from "./services/stateRestoration";
-import { startLiquidationChecker, startUpdateTSLtoDb } from "./services/positionMonitor";
+import {
+  startLiquidationChecker,
+  startUpdateTSLtoDb,
+} from "./services/positionMonitor";
 import { logger } from "./utils/logger";
 import mainRouter from "./routes/index";
+import { broadCastOrderOpened } from "./services/orderBroadcast";
+import type { Order } from "./constants/types";
 import { sendMessageToKafka } from "./controllers/spot.controller";
 
 const app = express();
@@ -29,13 +40,13 @@ let shuttingDown = false;
 async function startServer() {
   try {
     server = app.listen(port, () => {
-        console.log("═══════════════════════════════════════");
-        console.log(`\x1b[32m🚀 Server running on port ${port}\x1b[0m`);
-        console.log("═══════════════════════════════════════");
+      console.log("═══════════════════════════════════════");
+      console.log(`\x1b[32m🚀 Server running on port ${port}\x1b[0m`);
+      console.log("═══════════════════════════════════════");
     });
-    try{
+    try {
       await startStateRestoration();
-    } catch(error){
+    } catch (error) {
       logger.error("Error during state restoration:", error);
       throw error; // rethrow to be caught by outer catch
     }
@@ -50,18 +61,18 @@ async function startServer() {
     logger.info("[5/6] TSL to DB updater initialized");
     await startMatchingEngineProducer();
     logger.info("[6/6] Kafka Producer started");
-    setInterval(() => {
-  const sampleMessage = {
-    userId: "e9133975-7255-54ae-9525-2e4584b15d16",
-    orderId: `order-${Math.floor(Math.random() * 1000)}`,
-    symbol: "BTCUSD",
-    price: (50000 + Math.random() * 10000).toFixed(2),
-    quantity: (Math.random() * 5).toFixed(4),
-    side: Math.random() > 0.5 ? "buy" : "sell",
-    timestamp: new Date().toISOString(),
-  };
-  sendMessageToKafka(sampleMessage);
-}, 20000);
+    // setInterval(() => {
+    //   const sampleMessage = {
+    //     userId: "e9133975-7255-54ae-9525-2e4584b15d16",
+    //     orderId: `order-${Math.floor(Math.random() * 1000)}`,
+    //     symbol: "BTCUSD",
+    //     price: (50000 + Math.random() * 10000).toFixed(2),
+    //     quantity: (Math.random() * 5).toFixed(4),
+    //     side: Math.random() > 0.5 ? "buy" : "sell",
+    //     timestamp: new Date().toISOString(),
+    //   };
+    //   sendMessageToKafka(sampleMessage);
+    // }, 20000);
   } catch (error) {
     logger.error("error while starting server");
     process.exit(1);

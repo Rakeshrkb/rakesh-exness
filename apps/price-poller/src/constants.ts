@@ -9,3 +9,4 @@ export const BINANCE_STREAMS = {
   ETH: "ethusdt@aggTrade",
   SOL: "solusdt@aggTrade",
 } as const;
+export const brokerUrl = process.env.KAFKA_BROKER || "localhost:9092";

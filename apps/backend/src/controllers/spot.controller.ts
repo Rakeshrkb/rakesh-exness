@@ -11,6 +11,7 @@ import {
   updateUserBalance,
 } from "../data/store";
 import { prisma } from "database";
+import { Prisma } from "@prisma/client";
 import {
   SUPPORTED_ASSETS,
   SUPPORTED_ORDER_SIDES,
@@ -61,7 +62,7 @@ export const createSpotOrder = asyncHandler(
         throw new ApiError("Insufficient balance", 400);
       }
 
-      const freshUser = await prisma.$transaction(async (tx) => {
+      const freshUser = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
         const user = await tx.user.findUnique({
           where: { userId: String(userId) },
         });
@@ -126,7 +127,7 @@ export const createSpotOrder = asyncHandler(
       const priceInCents = Math.floor(priceData.bid / 100);
       const totalCostInCents = quantity * priceInCents; // using bid price for sell orders
 
-      const assetHoldings = await prisma.$transaction(async (tx) => {
+      const assetHoldings = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
         const assetBalance = await tx.balance.findUnique({
           where: {
             userId_asset: {
@@ -224,7 +225,7 @@ export const createLimitOrder = asyncHandler(
       throw new ApiError("Asset not supported", 400);
     }
 
-    const order = await prisma.$transaction(async (tx) => {
+    const order = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       if(side === "BUY") {
         const p = toInternalPrice(priceAt);
         const totalCostInCents = Math.floor((quantity * p)/100); // using user specified price for limit orders

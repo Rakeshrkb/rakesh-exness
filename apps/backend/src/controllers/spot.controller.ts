@@ -8,8 +8,6 @@ import { toInternalPrice } from "../utils/constantUtils";
 import {
   getPriceOfAsset,
   getUserById,
-  getUserOrders,
-  addOrderForUser,
   updateUserBalance,
 } from "../data/store";
 import { prisma } from "database";
@@ -17,6 +15,7 @@ import {
   SUPPORTED_ASSETS,
   SUPPORTED_ORDER_SIDES,
 } from "../constants/envConstants";
+import { logger } from "../utils/logger";
 
 export const sendMessageToKafka = async (message: any) => {
   try {
@@ -24,9 +23,9 @@ export const sendMessageToKafka = async (message: any) => {
       topic: "limit-orders",
       messages: [{ value: JSON.stringify(message) }],
     });
-    console.log(`Message sent to Kafka topic limit-orders:`, message);
+    logger.info(`Message sent to Kafka topic limit-orders:`, message);
   } catch (error) {
-    console.error(`Failed to send message to Kafka topic limit-orders:`, error);
+    logger.error(`Failed to send message to Kafka topic limit-orders:`, error);
   }
 };
 
@@ -58,16 +57,6 @@ export const createSpotOrder = asyncHandler(
     if (side === "BUY" && orderType === "MARKET") {
       const priceInCents = Math.floor(priceData.ask / 100);
       const totalCostInCents = quantity * priceInCents; // using ask price for buy orders
-      console.log(
-        "quantity",
-        quantity,
-        "price",
-        priceData.ask,
-        "totalCostInCents",
-        totalCostInCents,
-        "user balance",
-        user.balanceCents,
-      );
       if (totalCostInCents > user.balanceCents) {
         throw new ApiError("Insufficient balance", 400);
       }

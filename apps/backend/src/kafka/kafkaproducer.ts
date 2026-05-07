@@ -41,13 +41,10 @@ export const matching_engine_producer = kafka.producer({
 
 // start the producer
 export const startMatchingEngineProducer = async () => {
-    console.log("Connecting to Kafka Producer...");
     await matching_engine_producer.connect();
-    console.log("Kafka Producer connected");
 };
 
 // stop the producer
 export const stopMatchingEngineProducer = async () => {
     await matching_engine_producer.disconnect();
-    console.log("Kafka Producer disconnected");
 };

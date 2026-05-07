@@ -24,13 +24,17 @@ jobs:
       - name: Install dependencies
         run: bun install
 
-      - name: Typecheck Monorepo
-        run: bun x tsc --noEmit
+      - name: Typecheck Backend
+        run: bun run typecheck:backend
 
-      - name: Build frontend
-        run: |
-          cd apps/frontend
-          bun run build
+      - name: Typecheck Price Poller
+        run: bun run typecheck:price-poller
+
+      - name: Typecheck Matching Engine
+        run: bun run typecheck:matching-engine
+
+      - name: Typecheck Websocket
+        run: bun run typecheck:websocket
 
       - name: Verify Docker Compose
         run: docker compose config

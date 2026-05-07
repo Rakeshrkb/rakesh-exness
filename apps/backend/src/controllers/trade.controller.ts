@@ -18,6 +18,7 @@ import {
 } from "../utils/constantUtils";
 import { randomUUID } from "crypto";
 import { prisma } from "database";
+import { Prisma } from "@prisma/client";
 import { ApiError } from "../utils/apiError";
 import { asyncHandler } from "../utils/asyncHandler";
 import { ApiResponse } from "../utils/apiResponse";
@@ -165,7 +166,7 @@ export const openTradeController = asyncHandler(async (req: Request, res: Respon
     let actualNewBalance: number;
 
     try {
-      actualNewBalance = await prisma.$transaction<number>(async (tx) => {
+      actualNewBalance = await prisma.$transaction<number>(async (tx: Prisma.TransactionClient) => {
         const freshUser = await tx.user.findUnique({
           where: { userId },
         });
@@ -306,7 +307,7 @@ export const addMarginController =  asyncHandler( async (req: Request, res: Resp
     );
 
     try{
-      await prisma.$transaction(async (tx) => {
+      await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
         // update user balance 
         await tx.user.update({
           where: { userId },

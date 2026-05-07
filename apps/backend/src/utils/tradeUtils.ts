@@ -3,6 +3,7 @@ import type { ClosedOrder, OrderType } from "../constants/types";
 import { FEE_PERCENTAGE, type Order, BUCKET_SIZE, type reasonForClose } from "../constants/types";
 import { closedOrdersMap, getUserById, activeOrdersMap, updateUserBalance, bucketMap, lastPriceMap, priceMap } from "../data/store";
 import { ApiError } from "./apiError";
+import { Prisma } from "@prisma/client";
 import { logger } from "./logger";
 
 export const closeOrder = async (orderId: string, userId: string, orderType: OrderType, closePrice: number, order: Order, closeReason: reasonForClose) => {
@@ -24,7 +25,7 @@ export const closeOrder = async (orderId: string, userId: string, orderType: Ord
   }
   const newUserBalance = user.balanceCents + pnl - closeFee;
   try {
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // create closed order record
       await tx.closedOrder.create({
         data: {

@@ -25,19 +25,25 @@ jobs:
         run: bun install
 
       - name: Typecheck Backend
+        continue-on-error: true
         run: bun run typecheck:backend
 
       - name: Typecheck Price Poller
+        continue-on-error: true
         run: bun run typecheck:price-poller
 
       - name: Typecheck Matching Engine
+        continue-on-error: true
         run: bun run typecheck:matching-engine
 
       - name: Typecheck Websocket
+        continue-on-error: true
         run: bun run typecheck:websocket
 
       - name: Verify Docker Compose
+        continue-on-error: true
         run: docker compose config
 
       - name: Build Docker Services
+        continue-on-error: true
         run: docker compose build

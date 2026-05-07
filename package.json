@@ -11,7 +11,8 @@
   "backend-dev": "bun --watch ./apps/backend run dev",
   "price-poller-dev": "bun ./apps/price-poller run dev",
   "matching-engine-dev": "bun ./apps/matching-engine run dev",
-  "websocket-dev": "bun ./apps/websocket run dev"
+  "websocket-dev": "bun ./apps/websocket run dev",
+  "frontend-dev": "bun --watch ./apps/frontend run dev"
 },
   "devDependencies": {
     "@types/bun": "latest",

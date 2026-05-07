@@ -3,7 +3,7 @@ import axios from "axios";
 import type { SYMBOL } from "../utils/constants";
 import type { Asset } from "../types/asset";
 
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api/v2";
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api/auth";
 
 // Calculate time range based on chart duration
 function getTimeRangeForDuration(duration: any): number {
@@ -78,7 +78,7 @@ export async function submitsignup(email: string, pass: string) {
 export async function submitsignin(email: string, pass: string) {
   try {
     const res = await axios.post(
-      `${BASE_URL}/user/signin`,
+      `${BASE_URL}/signIn`,
       {
         email: email,
         password: pass,

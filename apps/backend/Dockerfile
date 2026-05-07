@@ -11,6 +11,6 @@ RUN bun install
 # Move to backend
 WORKDIR /app/apps/backend
 
-EXPOSE 3000
+EXPOSE 4000
 
 CMD ["bun", "run", "src/index.ts"]

@@ -44,41 +44,44 @@ services:
       timeout: 5s
       retries: 5
 
-  # backend:
-  #   build:
-  #     context: .
-  #     dockerfile: apps/backend/Dockerfile
-  #   container_name: exness-backend
-  #   depends_on:
-  #     - timescaledb
-  #     - redis
-  #     - kafka
-  #   ports:
-  #     - "4000:4000"
-  #   env_file:
-  #     - .env
-  # price-poller:
-  #   build:
-  #     context: .
-  #     dockerfile: apps/price-poller/Dockerfile
-  #   container_name: exness-price-poller
-  #   depends_on:
-  #     - redis
-  #     - kafka
-  #   env_file:
-  #     - .env
-  # websocket:
-  #   build:
-  #     context: .
-  #     dockerfile: apps/websocket/Dockerfile
-  #   container_name: exness-websocket
-  #   depends_on:
-  #     - redis
-  #     - kafka
-  #   ports:
-  #     - "8080:8080"
-  #   env_file:
-  #     - .env
+  backend:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    container_name: exness-backend
+    depends_on:
+      - timescaledb
+      - redis
+      - kafka
+    ports:
+      - "4000:4000"
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    command: bun --watch src/index.ts
+  price-poller:
+    build:
+      context: .
+      dockerfile: apps/price-poller/Dockerfile
+    container_name: exness-price-poller
+    depends_on:
+      - redis
+      - kafka
+    env_file:
+      - .env
+  websocket:
+    build:
+      context: .
+      dockerfile: apps/websocket/Dockerfile
+    container_name: exness-websocket
+    depends_on:
+      - redis
+      - kafka
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
 
 volumes:
   timescale_data:

@@ -1,0 +1,39 @@
+name: Exness CI
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+
+  pull_request:
+
+jobs:
+  build-and-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Typecheck Monorepo
+        run: bun x tsc --noEmit
+
+      - name: Build frontend
+        run: |
+          cd apps/frontend
+          bun run build
+
+      - name: Verify Docker Compose
+        run: docker compose config
+
+      - name: Build Docker Services
+        run: docker compose build

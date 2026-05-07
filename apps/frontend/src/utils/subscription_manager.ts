@@ -7,7 +7,7 @@ export class Signalingmanager {
   private static instance: Signalingmanager;
   private bufferedMessage: Record<string, unknown>[] = [];
   private initialized: boolean = false;
-  private authenticated: boolean = false; // Track authentication status
+  // private authenticated: boolean = false; // Track authentication status
   private token: string | null = null; // Store JWT token for reconnection
   private callbacks: { [symbol: string]: Array<(...args: Trade[]) => void> } =
     {};
@@ -100,10 +100,10 @@ export class Signalingmanager {
 
       // CRITICAL FIX: Handle authentication responses
       if (parsedMsg.type === "AUTHENTICATED") {
-        this.authenticated = true;
+        // this.authenticated = true;
         console.log(`WebSocket authenticated as user ${parsedMsg.userId}`);
       } else if (parsedMsg.type === "UNAUTHENTICATED") {
-        this.authenticated = false;
+        // this.authenticated = false;
         console.error("WebSocket authentication failed:", parsedMsg.message);
         // Try to refresh token from localStorage in case it changed
         this.token = localStorage.getItem("token");

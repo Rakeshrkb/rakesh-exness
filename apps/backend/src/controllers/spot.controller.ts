@@ -17,8 +17,9 @@ import {
   SUPPORTED_ORDER_SIDES,
 } from "../constants/envConstants";
 import { logger } from "../utils/logger";
+import type { Asset, LimitOrderData } from "../constants/types";
 
-export const sendMessageToKafka = async (message: any) => {
+export const sendLimitOrderToMatchingEngine = async (message: any) => {
   try {
     await matching_engine_producer.send({
       topic: "limit-orders",
@@ -292,18 +293,21 @@ export const createLimitOrder = asyncHandler(
       return newOrder;
     });
 
+
+    const orderData: LimitOrderData = {
+      orderId: order.id,
+      userId: order.userId,
+      symbol: order.symbol as Asset,
+      quantity: order.quantity,
+      side: order.side as "buy" | "sell",
+      priceAt: order.price,
+      orderType: order.type,
+      status: order.status as any, 
+      timestamp: order.createdAt.toISOString(),
+    };
+
       // Send order details to Kafka for matching engine
-      await sendMessageToKafka({
-        orderId: order.id,
-        userId: order.userId,
-        symbol: order.symbol,
-        quantity: order.quantity,
-        side: order.side,
-        priceAt: order.price,
-        orderType: order.type,
-        status: order.status,
-        timestamp: order.createdAt,
-      });
+    await sendLimitOrderToMatchingEngine({ data: orderData });
 
     return new ApiResponse(201, { order: order }, "Limit order created successfully");
   },

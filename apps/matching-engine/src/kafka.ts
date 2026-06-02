@@ -25,7 +25,7 @@ export const kafka = new Kafka({
 
 
 // create a kafka consumer
-export const consumer = kafka.consumer({ groupId: 'matching-engine-group',
+export const limitOrderConsumer = kafka.consumer({ groupId: 'matching-engine-group',
     sessionTimeout: 60000, // 60 seconds
     heartbeatInterval: 20000, // 20 seconds
     maxWaitTimeInMs: 5000, // max time to wait for messages in each poll
@@ -39,13 +39,14 @@ export const consumer = kafka.consumer({ groupId: 'matching-engine-group',
         },
     },
  });
+ 
 
 
 export const startKafkaConsumer = async () => {
     try{
-        await consumer.connect();
-        await consumer.subscribe({ topic: 'limit-orders', fromBeginning: false });
-        await consumer.run({
+        await limitOrderConsumer.connect();
+        await limitOrderConsumer.subscribe({ topic: 'limit-orders', fromBeginning: false });
+        await limitOrderConsumer.run({
             eachMessage: async ({ topic, partition, message }) => {
                 try {
                     const data = JSON.parse(message.value?.toString() ?? '{}');
@@ -65,7 +66,7 @@ export const startKafkaConsumer = async () => {
 
 export const stopKafkaConsumer = async () => {
     try {
-        await consumer.disconnect();
+        await limitOrderConsumer.disconnect();
     } catch (error) {
         console.error('[ERROR] Failed to disconnect Kafka Consumer:', error);
     }

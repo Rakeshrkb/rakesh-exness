@@ -13,6 +13,23 @@ export const LEVERAGE_OPTIONS = [1, 5, 10, 20, 100] as const;
 export type Leverage = (typeof LEVERAGE_OPTIONS)[number];
 export type SpotOrderStatus = "PENDING" | "PARTIALLY_FILLED" | "FILLED" | "CANCELED";
 
+export interface LimitOrderData {
+    orderId: string;
+    userId: string;
+    symbol: Asset;
+    quantity: number;
+    side: "buy" | "sell";
+    priceAt: number;
+    orderType: "LIMIT" | "MARKET";
+    status: OrderStatus;
+    timestamp: string;
+}
+
+export interface OrderStatus {
+    type: "PARTIALLY_FILLED" | "FILLED" | "CANCELLED";
+    data: LimitOrderData;
+}
+
 
 export interface redisPriceData {
   bid: number; // Sell price in PRICE_SCALE

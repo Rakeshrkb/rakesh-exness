@@ -50,7 +50,7 @@ export const startKafkaConsumer = async () => {
             eachMessage: async ({ topic, partition, message }) => {
                 try {
                     const data = JSON.parse(message.value?.toString() ?? '{}');
-                    console.log(`[INFO] Received LIMIT Order`, data);
+                    console.log(`[INFO] Received Order`, data);
                     const orderId = data.orderId;
                     await sendOrderUpdateToWSS(orderId, JSON.stringify(data));
                 } catch (error) {
